@@ -43,8 +43,7 @@ public:
     }
 
     void draw() {
-        Color col = this->col;
-        DrawCircle(pos.x, pos.y, hitboxCir, col);
+        DrawCircle(pos.x, pos.y, hitboxCir, this->col);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Item& item) {
@@ -160,32 +159,31 @@ public:
         return *this;
     }
 
-    void insertInventory(Item item) {
-        if (this->inventoryCount >= this->inventoryCapacity) {
-            int newCapacity;
-            if (this->inventoryCapacity > 0) {
-                newCapacity = this->inventoryCapacity * 2;
-            } else {
-                newCapacity = 1;
-            }
-
-            Item* newBuffer = new Item[newCapacity];
-            for (int i = 0; i < this->inventoryCount; i++) {
-                newBuffer[i] = this->inventory[i];
-            }
-
-            delete[] this->inventory;
-            this->inventory = newBuffer;
-            this->inventoryCapacity = newCapacity;
-        }
-
-        this->inventory[this->inventoryCount] = item;
-        this->inventoryCount++;
-    }
+    // void insertInventory(Item item) {
+    //     if (this->inventoryCount >= this->inventoryCapacity) {
+    //         int newCapacity;
+    //         if (this->inventoryCapacity > 0) {
+    //             newCapacity = this->inventoryCapacity * 2;
+    //         } else {
+    //             newCapacity = 1;
+    //         }
+    //
+    //         Item* newBuffer = new Item[newCapacity];
+    //         for (int i = 0; i < this->inventoryCount; i++) {
+    //             newBuffer[i] = this->inventory[i];
+    //         }
+    //
+    //         delete[] this->inventory;
+    //         this->inventory = newBuffer;
+    //         this->inventoryCapacity = newCapacity;
+    //     }
+    //
+    //     this->inventory[this->inventoryCount] = item;
+    //     this->inventoryCount++;
+    // }
 
     void draw() {
-        Color col = this->col;
-        DrawRectangle(pos.x, pos.y, hitboxRect.x, hitboxRect.y, col);
+        DrawRectangle(pos.x, pos.y, hitboxRect.x, hitboxRect.y, this->col);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Entity& entity) {
@@ -226,8 +224,7 @@ public:
         this->hitboxRect = hitbox;
     }
     void draw() {
-        Color col = this->col;
-        DrawRectangle(pos.x, pos.y, hitboxRect.x, hitboxRect.y, col);
+        DrawRectangle(pos.x, pos.y, hitboxRect.x, hitboxRect.y, this->col);
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Block& block) {
@@ -239,8 +236,6 @@ public:
 };
 
 int main() {
-    constexpr float radius = 24.0f;
-
     InitWindow(screenWidth, screenHeight, "Escape from Aether - raylib test");
     SetTargetFPS(fps);
 
