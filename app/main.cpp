@@ -236,6 +236,10 @@ public:
 };
 
 int main() {
+    int mode = 1;
+    std::cin>>mode;
+    if (mode == 0) return 0;
+
     InitWindow(screenWidth, screenHeight, "Escape from Aether - raylib test");
     SetTargetFPS(fps);
 
