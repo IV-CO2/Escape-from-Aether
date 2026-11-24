@@ -31,26 +31,24 @@ include(cmake/RegisterTests.cmake)
 
 # External dependencies with FetchContent
 
-include(FetchContent)
-
-set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
-set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
-
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-
+# include(FetchContent)
+#
+# set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
+# set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
+#
 # NOTE: Also update env vars used for caching in
 #     - .github/actions/configure-cmake/action.yml
 #     - .github/workflows/cmake.yml
-FetchContent_Declare(
-        raylib
-        SYSTEM         # keeps ext libs out of static code analysis
-        GIT_REPOSITORY https://github.com/raysan5/raylib.git
-        GIT_TAG        5.5
-        GIT_SHALLOW    1  # works only with branches or tags, not with arbitrary commit hashes
-        GIT_PROGRESS   ON
-)
-
-FetchContent_MakeAvailable(raylib)
+# FetchContent_Declare(
+#     SomeLib
+#     SYSTEM         # keeps ext libs out of static code analysis
+#     GIT_REPOSITORY https://github.com/<SomeUser>/<SomeLib>.git
+#     GIT_TAG        <some_git_hash> # <which tag/branch @ <some_date>>
+#     GIT_SHALLOW    1  # works only with branches or tags, not with arbitrary commit hashes
+#     GIT_PROGRESS   ON
+# )
+#
+# FetchContent_MakeAvailable(SomeLib)
 
 ###############################################################################
 
@@ -101,12 +99,16 @@ target_include_directories(${MAIN_LIBRARY_NAME} SYSTEM PRIVATE
         ${EXT_PRIVATE_DIR}
 )
 
+# target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE ${<SomeLib>_SOURCE_DIR}/include)
+
 ###############################################################################
 
 # Link libraries
 
-target_link_libraries(${MAIN_LIBRARY_NAME} PUBLIC raylib)
 target_link_libraries(${MAIN_EXECUTABLE_NAME} PRIVATE ${MAIN_LIBRARY_NAME})
+
+# target_link_directories(${MAIN_EXECUTABLE_NAME} PRIVATE ${<SomeLib>_BINARY_DIR}/lib)
+# target_link_libraries(${MAIN_EXECUTABLE_NAME} <SomeLib>)
 
 ###############################################################################
 
