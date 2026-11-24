@@ -244,7 +244,6 @@ int main() {
     Item coin({screenWidth / 2.0f - 3 * unit, screenHeight / 2.0f}, YELLOW, unit);
 
     while (!WindowShouldClose()) {
-
         BeginDrawing();
         player.draw();
         thing.draw();
