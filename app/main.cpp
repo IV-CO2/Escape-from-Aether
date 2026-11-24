@@ -1,54 +1,266 @@
+#include <raylib.h>
 #include <iostream>
-#include <array>
-#include "Example.h"
+#include <string>
+#include <vector>
+#include <math.h>
+
+const int unit = 10;
+const int screenWidth = 640;
+const int screenHeight = 360;
+const int fps = 60;
+
+struct vectorxy {
+    float x;
+    float y;
+
+    friend std::ostream& operator<<(std::ostream& os, const vectorxy& v) {
+        os << "(" << v.x << ", " << v.y << ")";
+        return os;
+    }
+};
+
+///class Background {};
+
+///class Foreground {};
+
+class Item {
+private:
+    vectorxy pos;
+    Color col;
+    float hitboxCir;
+    bool collected = false;
+public:
+    Item() {
+        this->pos.x = screenWidth / 2.0f - this->hitboxCir / 2.0f;
+        this->pos.y = screenHeight / 2.0f - this->hitboxCir / 2.0f;
+        this->col = YELLOW;
+        this->hitboxCir = unit;
+    }
+    Item(vectorxy pos, Color col, const float hitbox) {
+        this->pos = pos;
+        this->col = col;
+        this->hitboxCir = hitbox;
+    }
+
+    void draw() {
+        Color col = this->col;
+        DrawCircle(pos.x, pos.y, hitboxCir, col);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Item& item) {
+        os << "Item { pos: " << item.pos
+           << ", col: (" << (int)item.col.r << ", " << (int)item.col.g << ", " << (int)item.col.b << ", " << (int)item.col.a << ")"
+           << ", hitboxCir: " << item.hitboxCir
+           << ", collected: " << (item.collected ? "true" : "false") << " }";
+        return os;
+    }
+};
+
+class Entity {
+private:
+    vectorxy pos;
+    Color col;
+    float weight;
+    vectorxy hitboxRect;
+    vectorxy vel;
+    float hp;
+    Item* inventory;
+    int inventoryCount;
+    int inventoryCapacity;
+
+public:
+    Entity() {
+        this->hitboxRect = {unit, unit};
+        this->pos.x = screenWidth / 2.0f - hitboxRect.x / 2;
+        this->pos.y = screenHeight / 2.0f - hitboxRect.y / 2;
+        this->col = BLUE;
+        this->weight = 1;
+        this->vel.x = 0;
+        this->vel.y = 0;
+        this->hp = 1;
+        this->inventoryCount = 0;
+        this->inventoryCapacity = 5;
+        this->inventory = new Item[this->inventoryCapacity];
+    }
+
+    Entity(vectorxy pos, Color color, float weight, vectorxy hitbox, vectorxy vel, float hp, int invCapacity) {
+        this->pos = pos;
+        this->col = color;
+        this->vel = vel;
+        this->weight = weight;
+        this->hitboxRect = hitbox;
+        this->hp = hp;
+        this->inventoryCount = 0;
+        if (invCapacity > 0) {
+            this->inventoryCapacity = invCapacity;
+            this->inventory = new Item[this->inventoryCapacity];
+        } else {
+            this->inventoryCapacity = 0;
+            this->inventory = nullptr;
+        }
+    }
+
+    Entity(const Entity& other) {
+        this->pos = other.pos;
+        this->col = other.col;
+        this->vel = other.vel;
+        this->weight = other.weight;
+        this->hitboxRect = other.hitboxRect;
+        this->hp = other.hp;
+        this->inventoryCount = other.inventoryCount;
+        this->inventoryCapacity = other.inventoryCapacity;
+
+        if (this->inventoryCapacity > 0 && other.inventory != nullptr) {
+            this->inventory = new Item[this->inventoryCapacity];
+            for (int i = 0; i < this->inventoryCount; i++) {
+                this->inventory[i] = other.inventory[i];
+            }
+        } else {
+            this->inventory = nullptr;
+            this->inventoryCount = 0;
+            this->inventoryCapacity = 0;
+        }
+    }
+
+    ~Entity() {
+        delete[] this->inventory;
+        this->inventory = nullptr;
+        this->inventoryCount = 0;
+        this->inventoryCapacity = 0;
+    }
+
+    Entity& operator=(const Entity& other) {
+        if (this == &other) {
+            return *this;
+        }
+
+        delete[] this->inventory;
+        this->inventory = nullptr;
+
+        this->pos = other.pos;
+        this->col = other.col;
+        this->vel = other.vel;
+        this->weight = other.weight;
+        this->hitboxRect = other.hitboxRect;
+        this->hp = other.hp;
+        this->inventoryCount = other.inventoryCount;
+        this->inventoryCapacity = other.inventoryCapacity;
+
+        if (this->inventoryCapacity > 0 && other.inventory != nullptr) {
+            this->inventory = new Item[this->inventoryCapacity];
+            for (int i = 0; i < this->inventoryCount; i++) {
+                this->inventory[i] = other.inventory[i];
+            }
+        } else {
+            this->inventory = nullptr;
+            this->inventoryCount = 0;
+            this->inventoryCapacity = 0;
+        }
+
+        return *this;
+    }
+
+    void insertInventory(Item item) {
+        if (this->inventoryCount >= this->inventoryCapacity) {
+            int newCapacity;
+            if (this->inventoryCapacity > 0) {
+                newCapacity = this->inventoryCapacity * 2;
+            } else {
+                newCapacity = 1;
+            }
+
+            Item* newBuffer = new Item[newCapacity];
+            for (int i = 0; i < this->inventoryCount; i++) {
+                newBuffer[i] = this->inventory[i];
+            }
+
+            delete[] this->inventory;
+            this->inventory = newBuffer;
+            this->inventoryCapacity = newCapacity;
+        }
+
+        this->inventory[this->inventoryCount] = item;
+        this->inventoryCount++;
+    }
+
+    void draw() {
+        Color col = this->col;
+        DrawRectangle(pos.x, pos.y, hitboxRect.x, hitboxRect.y, col);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Entity& entity) {
+        os << "Entity { pos: " << entity.pos
+           << ", col: (" << (int)entity.col.r << ", " << (int)entity.col.g << ", " << (int)entity.col.b << ", " << (int)entity.col.a << ")"
+           << ", weight: " << entity.weight
+           << ", hitboxRect: " << entity.hitboxRect
+           << ", vel: " << entity.vel
+           << ", hp: " << entity.hp
+           << ", inventory (" << entity.inventoryCount << "/" << entity.inventoryCapacity << "): [";
+        for (int i = 0; i < entity.inventoryCount; i++) {
+            os << entity.inventory[i];
+            if (i < entity.inventoryCount - 1) {
+                os << ", ";
+            }
+        }
+        os << "] }";
+        return os;
+    }
+};
+
+class Block {
+private:
+    vectorxy pos;
+    Color col;
+    vectorxy hitboxRect;
+public:
+    Block() {
+        this->pos.x = screenWidth / 2.0f - this->hitboxRect.x / 2.0f;
+        this->pos.y = screenHeight / 2.0f - this->hitboxRect.y / 2.0f;
+        this->hitboxRect.x = unit;
+        this->hitboxRect.y = unit;
+        this->col = BLUE;
+    }
+    Block(vectorxy pos, Color color, vectorxy hitbox) {
+        this->pos = pos;
+        this->col = color;
+        this->hitboxRect = hitbox;
+    }
+    void draw() {
+        Color col = this->col;
+        DrawRectangle(pos.x, pos.y, hitboxRect.x, hitboxRect.y, col);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Block& block) {
+        os << "Block { pos: " << block.pos
+           << ", col: (" << (int)block.col.r << ", " << (int)block.col.g << ", " << (int)block.col.b << ", " << (int)block.col.a << ")"
+           << ", hitboxRect: " << block.hitboxRect << " }";
+        return os;
+    }
+};
 
 int main() {
-    std::cout << "Hello, world!\n";
-    Example e1;
-    e1.add(3);
-    e1.g();
-    std::array<int, 100> v{};
-    int nr;
-    std::cout << "Introduceți nr: ";
-    /////////////////////////////////////////////////////////////////////////
-    /// Observație: dacă aveți nevoie să citiți date de intrare de la tastatură,
-    /// dați exemple de date de intrare folosind fișierul tastatura.txt
-    /// Trebuie să aveți în fișierul tastatura.txt suficiente date de intrare
-    /// (în formatul impus de voi) astfel încât execuția programului să se încheie.
-    /// De asemenea, trebuie să adăugați în acest fișier date de intrare
-    /// pentru cât mai multe ramuri de execuție.
-    /// Dorim să facem acest lucru pentru a automatiza testarea codului, fără să
-    /// mai pierdem timp de fiecare dată să introducem de la zero aceleași date de intrare.
-    ///
-    /// Pe GitHub Actions (bife), fișierul tastatura.txt este folosit
-    /// pentru a simula date introduse de la tastatură.
-    /// Bifele verifică dacă programul are erori de compilare, erori de memorie și memory leaks.
-    ///
-    /// Dacă nu puneți în tastatura.txt suficiente date de intrare, îmi rezerv dreptul să vă
-    /// testez codul cu ce date de intrare am chef și să nu pun notă dacă găsesc vreun bug.
-    /// Impun această cerință ca să învățați să faceți un demo și să arătați părțile din
-    /// program care merg (și să le evitați pe cele care nu merg).
-    ///
-    /////////////////////////////////////////////////////////////////////////
-    std::cin >> nr;
-    /////////////////////////////////////////////////////////////////////////
-    for(int i = 0; i < nr; ++i) {
-        std::cout << "v[" << i << "] = ";
-        std::cin >> v[i];
+    constexpr float radius = 24.0f;
+
+    InitWindow(screenWidth, screenHeight, "Escape from Aether - raylib test");
+    SetTargetFPS(fps);
+
+    Vector2 pos{400.0f, 300.0f};
+    Vector2 vel{220.0f, 180.0f};
+
+    Entity player;
+    vectorxy thingsize; thingsize.x = screenWidth; thingsize.y = 120;
+    vectorxy thingpos; thingpos.x = 0; thingpos.y = screenHeight / 2.0f + 60;
+    Block thing(thingpos, BROWN, thingsize);
+    Item coin({screenWidth / 2.0f - 3 * unit, screenHeight / 2.0f}, YELLOW, unit);
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+        player.draw();
+        thing.draw();
+        coin.draw();
+        EndDrawing();
     }
-    std::cout << "\n\n";
-    std::cout << "Am citit de la tastatură " << nr << " elemente:\n";
-    for(int i = 0; i < nr; ++i) {
-        std::cout << "- " << v[i] << "\n";
-    }
-    ///////////////////////////////////////////////////////////////////////////
-    /// Pentru date citite din fișier, NU folosiți tastatura.txt. Creați-vă voi
-    /// alt fișier propriu cu ce alt nume doriți.
-    /// Exemplu:
-    /// std::ifstream fis("date.txt");
-    /// for(int i = 0; i < nr2; ++i)
-    ///     fis >> v2[i];
-    ///
-    ///////////////////////////////////////////////////////////////////////////
+
+    CloseWindow();
     return 0;
 }
