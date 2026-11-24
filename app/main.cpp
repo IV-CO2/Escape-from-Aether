@@ -31,10 +31,10 @@ private:
     bool collected = false;
 public:
     Item() {
+        this->hitboxCir = unit;
         this->pos.x = screenWidth / 2.0f - this->hitboxCir / 2.0f;
         this->pos.y = screenHeight / 2.0f - this->hitboxCir / 2.0f;
         this->col = YELLOW;
-        this->hitboxCir = unit;
     }
     Item(vectorxy pos, Color col, const float hitbox) {
         this->pos = pos;
