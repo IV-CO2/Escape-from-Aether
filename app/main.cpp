@@ -244,13 +244,8 @@ int main() {
     InitWindow(screenWidth, screenHeight, "Escape from Aether - raylib test");
     SetTargetFPS(fps);
 
-    Vector2 pos{400.0f, 300.0f};
-    Vector2 vel{220.0f, 180.0f};
-
     Entity player;
-    vectorxy thingsize; thingsize.x = screenWidth; thingsize.y = 120;
-    vectorxy thingpos; thingpos.x = 0; thingpos.y = screenHeight / 2.0f + 60;
-    Block thing(thingpos, BROWN, thingsize);
+    Block thing({0, screenHeight / 2.0f + 60}, BROWN, {screenWidth, 120});
     Item coin({screenWidth / 2.0f - 3 * unit, screenHeight / 2.0f}, YELLOW, unit);
 
     while (!WindowShouldClose()) {
