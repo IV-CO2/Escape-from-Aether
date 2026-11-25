@@ -238,11 +238,12 @@ public:
 int main() {
     int game = 1;
     std::ifstream gin("tastatura.txt");
-    if (gin.is_open())
+    if (gin.is_open()) {
         gin >> game;
-    else if (!(std::cin >> game)) {
-        game = 1;
+        std::cout<<"S-a citit din fisier " << game << ".\n";
     }
+    else
+         std::cin >> game;
     if (game == 0) return 0;
 
     InitWindow(screenWidth, screenHeight, "Escape from Aether - raylib test");
@@ -261,5 +262,6 @@ int main() {
     }
 
     CloseWindow();
+    gin.close();
     return 0;
 }
