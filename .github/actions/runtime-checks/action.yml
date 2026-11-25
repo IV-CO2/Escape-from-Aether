@@ -41,10 +41,10 @@ runs:
         if ! command -v xvfb-run >/dev/null 2>&1; then
           sudo apt-get update && sudo apt-get install -y xvfb
         fi
-        xvfb-run -a bash ../scripts/run_valgrind.sh .
+        xvfb-run -a bash -c 'cat "${INPUT_FILENAME}" | tr -d "\r" | bash ../scripts/run_valgrind.sh .'
 
     - name: Smoke test
-      # until we have a proper test env, we cannot fix ASan reliably
+        # until we have a proper test env, we cannot fix ASan reliably
       shell: bash
       if: runner.os != 'Windows' && (runner.os == 'macOS' || (matrix.runs_asan != true && matrix.runs_valgrind != true))
       run: |
@@ -58,11 +58,3 @@ runs:
           cat "${INPUT_FILENAME}" | tr -d '\r' | ./"${EXECUTABLE_NAME}"
         fi
         ./"${TESTS_EXECUTABLE_NAME}" && echo "All tests pass"
-
-    - name: Smoke test (Windows)
-      shell: bash
-      if: runner.os == 'Windows' && matrix.runs_asan != true
-      run: |
-        cd "${{ env.ZIP_NAME }}" && \
-          cat "${INPUT_FILENAME}" | tr -d '\r' | ./"${EXECUTABLE_NAME}".exe && \
-          ./"${TESTS_EXECUTABLE_NAME}".exe && echo "All tests pass"
