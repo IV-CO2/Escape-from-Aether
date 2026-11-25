@@ -12,9 +12,16 @@ runs:
       # env:
       #   ASAN_OPTIONS: detect_leaks=1
       run: |
-        cd "${{ env.ZIP_NAME }}" && \
-          cat "${INPUT_FILENAME}" | tr -d '\r' | ./"${EXECUTABLE_NAME}" && \
-          ./"${TESTS_EXECUTABLE_NAME}" && echo "All tests pass"
+        cd "${{ env.ZIP_NAME }}"
+        if [ "${{ runner.os }}" = "Linux" ]; then
+          if ! command -v xvfb-run >/dev/null 2>&1; then
+            sudo apt-get update && sudo apt-get install -y xvfb
+          fi
+          xvfb-run -a bash -c 'cat "${INPUT_FILENAME}" | tr -d "\r" | ./"${EXECUTABLE_NAME}"'
+        else
+          cat "${INPUT_FILENAME}" | tr -d '\r' | ./"${EXECUTABLE_NAME}"
+        fi
+        ./"${TESTS_EXECUTABLE_NAME}" && echo "All tests pass"
 
     - name: Sanitizers (Windows MSVC)
       shell: bash
