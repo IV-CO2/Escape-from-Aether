@@ -190,7 +190,7 @@ public:
         return *this;
     }
 
-    void insertInventory(Item item) {
+    void insertInventory(const Item& item) {
         if (this->inventoryCount >= this->inventoryCapacity) {
             int newCapacity;
             if (this->inventoryCapacity > 0) {
@@ -289,8 +289,8 @@ int main() {
     Item coin({screenWidth / 2.0f - 3 * unit, screenHeight / 2.0f}, YELLOW, unit);
 
     while (!WindowShouldClose()) {
-        ClearBackground(BLUE);
         BeginDrawing();
+        ClearBackground(BLUE);
         player.draw();
         thing.draw();
         coin.draw();
