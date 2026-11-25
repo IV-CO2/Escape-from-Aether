@@ -10,6 +10,11 @@ set(TESTS_EXECUTABLE_NAME "${MAIN_PROJECT_NAME}_test")
 # needs to be before `project()` to take effect
 option(CMAKE_EXPORT_COMPILE_COMMANDS "Export compilation database" ON)
 
+if(APPLE AND NOT CMAKE_C_COMPILER AND NOT CMAKE_CXX_COMPILER)
+    set(CMAKE_C_COMPILER "/usr/bin/clang")
+    set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+endif()
+
 project(${MAIN_PROJECT_NAME})
 # set(CMAKE_PROJECT_VERSION_MAJOR 0)
 # set(CMAKE_PROJECT_VERSION_MINOR 0)
