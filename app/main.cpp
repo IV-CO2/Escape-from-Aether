@@ -1,7 +1,6 @@
 #include <raylib.h>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <vector>
 #include <math.h>
 
@@ -27,20 +26,51 @@ struct vectorxy {
 class Item {
 private:
     vectorxy pos;
+    float baseY;
     Color col;
     float hitboxCir;
     bool collected = false;
 public:
     Item() {
         this->hitboxCir = unit;
-        this->pos.x = screenWidth / 2.0f - this->hitboxCir / 2.0f;
-        this->pos.y = screenHeight / 2.0f - this->hitboxCir / 2.0f;
+        this->pos.x = screenWidth / 2.0f; //- this->hitboxCir / 2.0f;
+        this->pos.y = screenHeight / 2.0f; //- this->hitboxCir / 2.0f;
+        baseY = this->pos.y;
         this->col = YELLOW;
     }
     Item(vectorxy pos, Color col, const float hitbox) {
         this->pos = pos;
+        this->baseY = pos.y;
         this->col = col;
         this->hitboxCir = hitbox;
+    }
+
+    bool checkCollisionWithBox(vectorxy boxPos, vectorxy boxSize) const {
+        if (this->collected) {
+            return false;
+        }
+
+        Vector2 circleCenter = { this->pos.x, this->pos.y };
+        Rectangle entityRec = { boxPos.x, boxPos.y, boxSize.x, boxSize.y };
+
+        return CheckCollisionCircleRec(circleCenter, this->hitboxCir, entityRec);
+    }
+
+    void updateHover(float amplitude = unit / 2.0f, float speed = 3.0f) {
+        if (this->collected) {
+            return;
+        }
+
+        float elapsed = static_cast<float>(GetTime());
+        this->pos.y = this->baseY + amplitude * sinf(speed * elapsed);
+    }
+
+    void markCollected() {
+        this->collected = true;
+    }
+
+    bool isCollected() const {
+        return this->collected;
     }
 
     void draw() {
@@ -73,7 +103,7 @@ public:
         this->hitboxRect = {unit, unit};
         this->pos.x = screenWidth / 2.0f - hitboxRect.x / 2;
         this->pos.y = screenHeight / 2.0f - hitboxRect.y / 2;
-        this->col = BLUE;
+        this->col = BLACK;
         this->weight = 1;
         this->vel.x = 0;
         this->vel.y = 0;
@@ -160,28 +190,28 @@ public:
         return *this;
     }
 
-    // void insertInventory(Item item) {
-    //     if (this->inventoryCount >= this->inventoryCapacity) {
-    //         int newCapacity;
-    //         if (this->inventoryCapacity > 0) {
-    //             newCapacity = this->inventoryCapacity * 2;
-    //         } else {
-    //             newCapacity = 1;
-    //         }
-    //
-    //         Item* newBuffer = new Item[newCapacity];
-    //         for (int i = 0; i < this->inventoryCount; i++) {
-    //             newBuffer[i] = this->inventory[i];
-    //         }
-    //
-    //         delete[] this->inventory;
-    //         this->inventory = newBuffer;
-    //         this->inventoryCapacity = newCapacity;
-    //     }
-    //
-    //     this->inventory[this->inventoryCount] = item;
-    //     this->inventoryCount++;
-    // }
+    void insertInventory(Item item) {
+        if (this->inventoryCount >= this->inventoryCapacity) {
+            int newCapacity;
+            if (this->inventoryCapacity > 0) {
+                newCapacity = this->inventoryCapacity * 2;
+            } else {
+                newCapacity = 1;
+            }
+
+            Item* newBuffer = new Item[newCapacity];
+            for (int i = 0; i < this->inventoryCount; i++) {
+                newBuffer[i] = this->inventory[i];
+            }
+
+            delete[] this->inventory;
+            this->inventory = newBuffer;
+            this->inventoryCapacity = newCapacity;
+        }
+
+        this->inventory[this->inventoryCount] = item;
+        this->inventoryCount++;
+    }
 
     void draw() {
         DrawRectangle(pos.x, pos.y, hitboxRect.x, hitboxRect.y, this->col);
@@ -216,13 +246,18 @@ public:
         this->hitboxRect = {unit, unit};
         this->pos.x = screenWidth / 2.0f - this->hitboxRect.x / 2.0f;
         this->pos.y = screenHeight / 2.0f - this->hitboxRect.y / 2.0f;
-        this->col = BLUE;
+        this->col = BROWN;
     }
     Block(vectorxy pos, Color color, vectorxy hitbox) {
         this->pos = pos;
         this->col = color;
         this->hitboxRect = hitbox;
     }
+
+    // Rectangle getHitbox() const {
+    //     return Rectangle{ this->pos.x, this->pos.y, this->hitboxRect.x, this->hitboxRect.y };
+    // }
+
     void draw() {
         DrawRectangle(pos.x, pos.y, hitboxRect.x, hitboxRect.y, this->col);
     }
@@ -254,12 +289,19 @@ int main() {
     Item coin({screenWidth / 2.0f - 3 * unit, screenHeight / 2.0f}, YELLOW, unit);
 
     while (!WindowShouldClose()) {
+        ClearBackground(BLUE);
         BeginDrawing();
         player.draw();
         thing.draw();
         coin.draw();
+        coin.updateHover();
         EndDrawing();
     }
+    std::cout << coin.checkCollisionWithBox({0, 0}, {unit, unit})<<"\n";
+    coin.markCollected();
+    std::cout << coin.isCollected() << "\n";
+    Item newCoin;
+    player.insertInventory(newCoin);
 
     CloseWindow();
     gin.close();
