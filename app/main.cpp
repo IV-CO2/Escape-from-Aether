@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <math.h>
@@ -212,10 +213,9 @@ private:
     vectorxy hitboxRect;
 public:
     Block() {
+        this->hitboxRect = {unit, unit};
         this->pos.x = screenWidth / 2.0f - this->hitboxRect.x / 2.0f;
         this->pos.y = screenHeight / 2.0f - this->hitboxRect.y / 2.0f;
-        this->hitboxRect.x = unit;
-        this->hitboxRect.y = unit;
         this->col = BLUE;
     }
     Block(vectorxy pos, Color color, vectorxy hitbox) {
@@ -236,9 +236,14 @@ public:
 };
 
 int main() {
-    int mode = 1;
-    std::cin>>mode;
-    if (mode == 0) return 0;
+    int game = 1;
+    std::ifstream gin("tastatura.txt");
+    if (gin.is_open())
+        gin >> game;
+    else if (!(std::cin >> game)) {
+        game = 1;
+    }
+    if (game == 0) return 0;
 
     InitWindow(screenWidth, screenHeight, "Escape from Aether - raylib test");
     SetTargetFPS(fps);
