@@ -297,6 +297,7 @@ int main() {
         coin.updateHover();
         EndDrawing();
     }
+
     std::cout << coin.checkCollisionWithBox({0, 0}, {unit, unit})<<"\n";
     coin.markCollected();
     std::cout << coin.isCollected() << "\n";
